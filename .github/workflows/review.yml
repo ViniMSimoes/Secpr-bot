@@ -1,0 +1,35 @@
+name: "SecPR Security Review"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  security-scan:
+    name: "Run SecPR Bot"
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run SecPR Bot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        run: |
+          go run cmd/main.go
